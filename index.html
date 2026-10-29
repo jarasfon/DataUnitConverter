@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Converter | ตัวแปลงหน่วยข้อมูล</title>
+  <style>
+    :root {
+      --bg: #f3f6fc;
+      --surface: rgba(255,255,255,.94);
+      --text: #17233b;
+      --muted: #6b7890;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --border: #dfe6f1;
+      --shadow: 0 22px 60px rgba(35, 52, 95, .12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(99,102,241,.16), transparent 28rem),
+        radial-gradient(circle at 90% 88%, rgba(14,165,233,.13), transparent 25rem),
+        var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 28px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      color: white;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1, #4338ca);
+      box-shadow: 0 8px 20px rgba(79,70,229,.25);
+      font-size: 23px;
+      font-weight: 800;
+    }
+    .brand-name { font-weight: 800; font-size: 17px; letter-spacing: -.3px; }
+    .brand-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    main {
+      width: min(760px, calc(100% - 32px));
+      margin: auto;
+      padding: 20px 0 56px;
+    }
+    .intro { text-align: center; margin-bottom: 28px; }
+    .eyebrow {
+      display: inline-block;
+      color: var(--primary);
+      background: #e9eaff;
+      border: 1px solid #d9dafe;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+    h1 { font-size: clamp(30px, 5vw, 43px); line-height: 1.2; margin: 16px 0 10px; letter-spacing: -1.2px; }
+    .intro p { margin: 0 auto; max-width: 540px; color: var(--muted); line-height: 1.75; font-size: 15px; }
+    .converter {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 26px;
+      padding: clamp(20px, 4vw, 34px);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .field-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .field-label span:last-child { color: var(--muted); font-weight: 500; font-size: 12px; }
+    .input-wrap { position: relative; }
+    input, select {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input { padding: 0 16px; font-size: 20px; font-weight: 700; }
+    select { padding: 0 42px 0 14px; font-size: 15px; cursor: pointer; }
+    input:focus, select:focus { border-color: #818cf8; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+    .input-note { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .unit-flow {
+      display: grid;
+      grid-template-columns: 1fr 44px 1fr;
+      gap: 12px;
+      align-items: end;
+      margin-top: 25px;
+    }
+    .swap-button {
+      width: 44px; height: 44px; border-radius: 13px;
+      border: 1px solid #dcdfff; color: var(--primary);
+      background: #f0f0ff; cursor: pointer; font-size: 21px;
+      transition: transform .2s, background .2s;
+    }
+    .swap-button:hover { background: #e5e7ff; transform: rotate(180deg); }
+    .result {
+      margin-top: 28px;
+      border-radius: 20px;
+      padding: 22px;
+      background: linear-gradient(135deg, #4338ca, #6366f1 60%, #0ea5e9);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .result::after {
+      content: ""; position: absolute; width: 180px; height: 180px;
+      border: 1px solid rgba(255,255,255,.16); border-radius: 50%;
+      right: -65px; top: -95px; box-shadow: 0 0 0 22px rgba(255,255,255,.04), 0 0 0 44px rgba(255,255,255,.03);
+    }
+    .result-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: relative; z-index: 1; }
+    .result-label { font-size: 13px; color: rgba(255,255,255,.82); font-weight: 650; }
+    .copy-button {
+      border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.13);
+      color: white; padding: 8px 11px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 12px;
+    }
+    .copy-button:hover { background: rgba(255,255,255,.23); }
+    .result-value {
+      position: relative; z-index: 1; font-size: clamp(27px, 5vw, 40px);
+      line-height: 1.25; font-weight: 800; letter-spacing: -.7px;
+      overflow-wrap: anywhere; margin: 15px 0 7px;
+    }
+    .result-equation { position: relative; z-index: 1; color: rgba(255,255,255,.8); font-size: 13px; overflow-wrap: anywhere; }
+    .options {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      border-top: 1px solid #edf0f6; margin-top: 25px; padding-top: 20px;
+    }
+    .options strong { display: block; font-size: 13px; margin-bottom: 5px; }
+    .options small { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .segmented {
+      display: flex; padding: 4px; border-radius: 12px; background: #f0f2f8; flex-shrink: 0;
+    }
+    .segmented button {
+      border: 0; border-radius: 9px; padding: 9px 12px; cursor: pointer;
+      color: var(--muted); background: transparent; font: inherit; font-size: 12px; font-weight: 750;
+    }
+    .segmented button.active { color: var(--primary-dark); background: white; box-shadow: 0 2px 7px rgba(24,39,75,.09); }
+    .quick-title { font-size: 13px; font-weight: 800; margin: 26px 0 12px; }
+    .quick-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .quick {
+      text-align: left; padding: 13px 12px; border: 1px solid var(--border);
+      background: rgba(255,255,255,.75); border-radius: 13px; cursor: pointer;
+      transition: .2s;
+    }
+    .quick:hover { border-color: #a5b4fc; transform: translateY(-2px); background: white; }
+    .quick b { display: block; font-size: 13px; margin-bottom: 5px; }
+    .quick span { font-size: 11px; color: var(--muted); }
+    .formula { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.7; text-align: center; }
+    footer { text-align: center; padding: 22px 16px 28px; color: #8792a7; font-size: 12px; }
+    @media (max-width: 560px) {
+      header { padding: 20px 0; }
+      main { padding-top: 14px; }
+      .unit-flow { grid-template-columns: 1fr 40px 1fr; gap: 8px; }
+      .swap-button { width: 40px; height: 44px; }
+      select { font-size: 13px; padding-left: 10px; }
+      .quick-list { grid-template-columns: repeat(2, 1fr); }
+      .options { align-items: flex-start; flex-direction: column; }
+      .segmented { width: 100%; }
+      .segmented button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-icon">↗</div>
+    <div>
+      <div class="brand-name">Data Converter</div>
+      <div class="brand-sub">เครื่องมือแปลงหน่วยข้อมูลดิจิทัล</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <span class="eyebrow">DATA UNIT CONVERTER</span>
+      <h1>แปลงหน่วยข้อมูล<br>ได้ในไม่กี่วินาที</h1>
+      <p>กรอกตัวเลข เลือกหน่วยต้นทางและหน่วยปลายทาง ระบบจะคำนวณผลลัพธ์ให้โดยอัตโนมัติ</p>
+    </section>
+
+    <section class="converter" aria-label="เครื่องมือแปลงหน่วยข้อมูล">
+      <div class="field-label">
+        <label for="amount">ค่าที่ต้องการแปลง</label>
+        <span>กรอกตัวเลข</span>
+      </div>
+      <div class="input-wrap">
+        <input id="amount" type="number" min="0" step="any" value="1024" placeholder="เช่น 1024" inputmode="decimal">
+      </div>
+      <div class="input-note">รองรับตัวเลขทศนิยมและเลขศูนย์</div>
+
+      <div class="unit-flow">
+        <div>
+          <div class="field-label"><label for="fromUnit">จากหน่วย</label></div>
+          <select id="fromUnit">
+            <option value="B">B — Byte</option>
+            <option value="KB">KB — Kilobyte</option>
+            <option value="MB">MB — Megabyte</option>
+            <option value="GB">GB — Gigabyte</option>
+            <option value="TB">TB — Terabyte</option>
+            <option value="PB">PB — Petabyte</option>
+            <option value="KiB">KiB — Kibibyte</option>
+            <option value="MiB">MiB — Mebibyte</option>
+            <option value="GiB">GiB — Gibibyte</option>
+            <option value="TiB">TiB — Tebibyte</option>
+            <option value="bit">bit — บิต</option>
+            <option value="Kbit">Kbit — Kilobit</option>
+            <option value="Mbit">Mbit — Megabit</option>
+            <option value="Gbit">Gbit — Gigabit</option>
+          </select>
+        </div>
+        <button class="swap-button" id="swap" type="button" aria-label="สลับหน่วย" title="สลับหน่วย">⇄</button>
+        <div>
+          <div class="field-label"><label for="toUnit">เป็นหน่วย</label></div>
+          <select id="toUnit">
+            <option value="B">B — Byte</option>
+            <option value="KB">KB — Kilobyte</option>
+            <option value="MB" selected>MB — Megabyte</option>
+            <option value="GB">GB — Gigabyte</option>
+            <option value="TB">TB — Terabyte</option>
+            <option value="PB">PB — Petabyte</option>
+            <option value="KiB">KiB — Kibibyte</option>
+            <option value="MiB">MiB — Mebibyte</option>
+            <option value="GiB">GiB — Gibibyte</option>
+            <option value="TiB">TiB — Tebibyte</option>
+            <option value="bit">bit — บิต</option>
+            <option value="Kbit">Kbit — Kilobit</option>
+            <option value="Mbit">Mbit — Megabit</option>
+            <option value="Gbit">Gbit — Gigabit</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div class="result-top">
+          <span class="result-label">ผลลัพธ์การแปลง</span>
+          <button class="copy-button" id="copy" type="button">▢ คัดลอกผลลัพธ์</button>
+        </div>
+        <div class="result-value" id="resultValue">0.001024 MB</div>
+        <div class="result-equation" id="equation">1024 B = 0.001024 MB</div>
+      </div>
+
+      <div class="options">
+        <div>
+          <strong>รูปแบบการคำนวณ</strong>
+          <small id="modeDescription">1 KB = 1,000 B · เหมาะกับการระบุความจุทั่วไป</small>
+        </div>
+        <div class="segmented" role="group" aria-label="รูปแบบการคำนวณ">
+          <button type="button" data-base="1000" class="active">ฐาน 1000 (SI)</button>
+          <button type="button" data-base="1024">ฐาน 1024 (IEC)</button>
+        </div>
+      </div>
+
+      <div class="quick-title">ลองแปลงหน่วยยอดนิยม</div>
+      <div class="quick-list">
+        <button class="quick" type="button" data-from="B" data-to="KB"><b>B → KB</b><span>ไบต์เป็นกิโลไบต์</span></button>
+        <button class="quick" type="button" data-from="MB" data-to="GB"><b>MB → GB</b><span>เมกะไบต์เป็นกิกะไบต์</span></button>
+        <button class="quick" type="button" data-from="GB" data-to="TB"><b>GB → TB</b><span>กิกะไบต์เป็นเทราไบต์</span></button>
+        <button class="quick" type="button" data-from="GB" data-to="Mbit"><b>GB → Mbit</b><span>ไบต์เป็นเมกะบิต</span></button>
+      </div>
+      <div class="formula">หมายเหตุ: KB/MB/GB ใช้ฐาน 1000 และ KiB/MiB/GiB เป็นหน่วยฐาน 1024 ตามมาตรฐาน IEC</div>
+    </section>
+  </main>
+  <footer>Data Converter · เครื่องมือแปลงหน่วยข้อมูล ใช้งานได้ฟรีในเบราว์เซอร์</footer>
+
+  <script>
+    const amount = document.getElementById('amount');
+    const fromUnit = document.getElementById('fromUnit');
+    const toUnit = document.getElementById('toUnit');
+    const resultValue = document.getElementById('resultValue');
+    const equation = document.getElementById('equation');
+    const modeDescription = document.getElementById('modeDescription');
+    const copyButton = document.getElementById('copy');
+    let base = 1000;
+
+    // เก็บค่าของแต่ละหน่วยเป็นจำนวน bit เพื่อให้แปลงข้ามหน่วยได้ถูกต้อง
+    const unitInfo = {
+      B:    { label: 'B',    name: 'Byte',      factor: 8, type: 'byte' },
+      KB:   { label: 'KB',   name: 'Kilobyte',  factor: 8 * 1000, type: 'decimal-byte' },
+      MB:   { label: 'MB',   name: 'Megabyte',  factor: 8 * 1000 ** 2, type: 'decimal-byte' },
+      GB:   { label: 'GB',   name: 'Gigabyte',  factor: 8 * 1000 ** 3, type: 'decimal-byte' },
+      TB:   { label: 'TB',   name: 'Terabyte',  factor: 8 * 1000 ** 4, type: 'decimal-byte' },
+      PB:   { label: 'PB',   name: 'Petabyte',  factor: 8 * 1000 ** 5, type: 'decimal-byte' },
+      KiB:  { label: 'KiB',  name: 'Kibibyte',  factor: 8 * 1024, type: 'binary-byte' },
+      MiB:  { label: 'MiB',  name: 'Mebibyte',  factor: 8 * 1024 ** 2, type: 'binary-byte' },
+      GiB:  { label: 'GiB',  name: 'Gibibyte',  factor: 8 * 1024 ** 3, type: 'binary-byte' },
+      TiB:  { label: 'TiB',  name: 'Tebibyte',  factor: 8 * 1024 ** 4, type: 'binary-byte' },
+      bit:  { label: 'bit',  name: 'Bit',       factor: 1, type: 'bit' },
+      Kbit: { label: 'Kbit', name: 'Kilobit',   factor: 1000, type: 'decimal-bit' },
+      Mbit: { label: 'Mbit', name: 'Megabit',   factor: 1000 ** 2, type: 'decimal-bit' },
+      Gbit: { label: 'Gbit', name: 'Gigabit',   factor: 1000 ** 3, type: 'decimal-bit' }
+    };
+
+    function getFactor(unit) {
+      // หน่วย SI ใช้ฐาน 1000; หน่วย IEC ใช้ฐาน 1024
+      const info = unitInfo[unit];
+      if (unit === 'KB') return 8 * base;
+      if (unit === 'MB') return 8 * base ** 2;
+      if (unit === 'GB') return 8 * base ** 3;
+      if (unit === 'TB') return 8 * base ** 4;
+      if (unit === 'PB') return 8 * base ** 5;
+      if (unit === 'Kbit') return base;
+      if (unit === 'Mbit') return base ** 2;
+      if (unit === 'Gbit') return base ** 3;
+      return info.factor;
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) return 'ค่ามากเกินกว่าจะแสดงผล';
+      if (value === 0) return '0';
+      const abs = Math.abs(value);
+      if (abs >= 1e15 || abs < 1e-7) {
+        return value.toExponential(8).replace(/\.?0+e/, 'e');
+      }
+      return new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 12,
+        useGrouping: true
+      }).format(value);
+    }
+
+    function calculate() {
+      const raw = amount.value.trim();
+      const value = Number(raw);
+      if (raw === '' || !Number.isFinite(value) || value < 0) {
+        resultValue.textContent = 'กรุณากรอกตัวเลขที่ถูกต้อง';
+        equation.textContent = 'ใส่ค่าตั้งแต่ 0 ขึ้นไปเพื่อเริ่มแปลงหน่วย';
+        return;
+      }
+      const converted = value * getFactor(fromUnit.value) / getFactor(toUnit.value);
+      resultValue.textContent = `${formatNumber(converted)} ${toUnit.value}`;
+      equation.textContent = `${formatNumber(value)} ${fromUnit.value} = ${formatNumber(converted)} ${toUnit.value}`;
+      modeDescription.textContent = base === 1000
+        ? '1 KB = 1,000 B · เหมาะกับการระบุความจุทั่วไป'
+        : '1 KiB = 1,024 B · ใช้ฐาน 1024 สำหรับการคำนวณแบบไบนารี';
+      copyButton.textContent = '▢ คัดลอกผลลัพธ์';
+    }
+
+    [amount, fromUnit, toUnit].forEach(el => el.addEventListener('input', calculate));
+    [fromUnit, toUnit].forEach(el => el.addEventListener('change', calculate));
+
+    document.getElementById('swap').addEventListener('click', () => {
+      const previous = fromUnit.value;
+      fromUnit.value = toUnit.value;
+      toUnit.value = previous;
+      calculate();
+    });
+
+    document.querySelectorAll('[data-base]').forEach(button => {
+      button.addEventListener('click', () => {
+        base = Number(button.dataset.base);
+        document.querySelectorAll('[data-base]').forEach(item => item.classList.toggle('active', item === button));
+        calculate();
+      });
+    });
+
+    document.querySelectorAll('.quick').forEach(button => {
+      button.addEventListener('click', () => {
+        fromUnit.value = button.dataset.from;
+        toUnit.value = button.dataset.to;
+        calculate();
+        amount.focus();
+      });
+    });
+
+    copyButton.addEventListener('click', async () => {
+      const text = resultValue.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyButton.textContent = '✓ คัดลอกแล้ว';
+      } catch {
+        const temporary = document.createElement('textarea');
+        temporary.value = text;
+        document.body.appendChild(temporary);
+        temporary.select();
+        document.execCommand('copy');
+        temporary.remove();
+        copyButton.textContent = '✓ คัดลอกแล้ว';
+      }
+      setTimeout(() => copyButton.textContent = '▢ คัดลอกผลลัพธ์', 1600);
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
